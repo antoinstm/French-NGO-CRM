@@ -1495,3 +1495,13 @@ table.meetings td.col-num {
 }
 .deposit-apprendre input { margin-top: .2rem; flex: 0 0 auto; }
 .deposit-apprendre > :not(input) { min-width: 0; }
+
+/* Indicateurs: counts right-aligned in tabular figures so the units line up,
+   in a fixed-width last column so each chamber's table lines up with the
+   next one instead of sizing itself to its own group names. */
+table.kpi-table th:last-child,
+table.kpi-table td:last-child {
+  width: 6rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

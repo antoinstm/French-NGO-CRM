@@ -8,7 +8,7 @@
 <p>Élu·es en poste dans la base : <strong>{{ total_elus }}</strong></p>
 
 <div class="table-wrap">
-  <table>
+  <table class="meetings kpi-table">
     <thead>
       <tr><th>Position sur PauseIA</th><th>Nombre</th></tr>
     </thead>
@@ -25,9 +25,9 @@
 
 <h2>Répartition par groupe politique</h2>
 {% for chambre, lignes in groupes_par_chambre.items() if lignes %}
-<h3>{{ chambre }} ({{ lignes | sum(attribute='n') }})</h3>
+<h3>{{ "Gouvernement" if chambre == "Autre" else chambre }} ({{ lignes | sum(attribute='n') }})</h3>
 <div class="table-wrap">
-  <table>
+  <table class="meetings kpi-table">
     <thead>
       <tr><th>Groupe</th><th>Élu·es</th></tr>
     </thead>
