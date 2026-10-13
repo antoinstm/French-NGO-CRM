@@ -3949,10 +3949,32 @@ def kpi_view():
         """
     ).fetchall()
 
+    # One table per chamber: 31 groups in a single list would be unreadable,
+    # and the advocacy team works each chamber separately. Goes through
+    # person_organisations (the source of truth), not the political_group mirror.
+    par_groupe = db.execute(
+        """
+        SELECT o.chambre, o.name AS groupe, COUNT(DISTINCT p.id) AS n
+        FROM persons p
+        JOIN person_organisations po ON po.person_id = p.id
+        JOIN organisations o         ON o.id = po.organisation_id
+        WHERE p.contact_type = 'Politique' AND p.in_office = 1
+          AND o.org_type = 'Groupe politique'
+        GROUP BY o.id
+        ORDER BY n DESC
+        """
+    ).fetchall()
+
+    chambres = ["Assemblée nationale", "Sénat", "Parlement européen", "Autre"]
+    groupes_par_chambre = {c: [] for c in chambres}
+    for row in par_groupe:
+        groupes_par_chambre.setdefault(row["chambre"] or "Autre", []).append(row)
+
     return render_template(
         "kpi.html",
         total_elus=total_elus,
         par_position=par_position,
+        groupes_par_chambre=groupes_par_chambre,
     )
 
 

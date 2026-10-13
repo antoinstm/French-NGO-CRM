@@ -22,4 +22,24 @@
     </tbody>
   </table>
 </div>
+
+<h2>Répartition par groupe politique</h2>
+{% for chambre, lignes in groupes_par_chambre.items() if lignes %}
+<h3>{{ chambre }} ({{ lignes | sum(attribute='n') }})</h3>
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Groupe</th><th>Élu·es</th></tr>
+    </thead>
+    <tbody>
+      {% for ligne in lignes %}
+      <tr>
+        <td>{{ ligne.groupe }}</td>
+        <td>{{ ligne.n }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endfor %}
 {% endblock %}
