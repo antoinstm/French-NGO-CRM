@@ -3929,6 +3929,41 @@ def calendar_view():
     )
 
 
+# A courriel the team stands behind: sent, and either an utilisateurice is
+# recorded on it (entered by hand) or a member is linked to it (captured from
+# a @pauseia.fr mailbox, which leaves received_by NULL). Courriels citoyens
+# have neither. Wider than PAUSEIA_MAIL_COUNT_SQL, which misses the captured
+# ones.
+TEAM_SENT_MAIL_SQL = """
+    ma.direction = 'sent'
+    AND (ma.received_by IS NOT NULL
+         OR EXISTS (SELECT 1 FROM mail_members mm WHERE mm.mail_id = ma.id))
+"""
+
+# Every (élu·e en poste, day) on which the team reached them: a rencontre or a
+# team courriel, up to the date passed as the only parameter — a rencontre
+# planned for next month is not a contact yet.
+ELU_CONTACTS_CTE = f"""
+    WITH contacts AS (
+        SELECT mp.person_id, m.meeting_date AS day
+          FROM meetings m
+          JOIN meeting_persons mp ON mp.meeting_id = m.id
+        UNION ALL
+        SELECT xp.person_id, ma.mail_date AS day
+          FROM mails ma
+          JOIN mail_persons xp ON xp.mail_id = ma.id
+         WHERE {TEAM_SENT_MAIL_SQL}
+    ),
+    elus AS (
+        SELECT c.person_id, c.day
+          FROM contacts c
+          JOIN persons p ON p.id = c.person_id
+         WHERE p.contact_type = 'Politique' AND p.in_office = 1
+           AND c.day <= ?
+    )
+"""
+
+
 @app.route("/kpi")
 @login_required
 def kpi_view():
@@ -3938,6 +3973,57 @@ def kpi_view():
         "SELECT COUNT(*) FROM persons "
         "WHERE contact_type = 'Politique' AND in_office = 1"
     ).fetchone()[0]
+
+    today = date.today().isoformat()
+
+    contactes = db.execute(
+        ELU_CONTACTS_CTE + "SELECT COUNT(DISTINCT person_id) FROM elus",
+        (today,),
+    ).fetchone()[0]
+    pct_contactes = (f"{100 * contactes / total_elus:.1f}".replace(".", ",")
+                     if total_elus else "0")
+
+    en_attente = db.execute(
+        """
+        SELECT COUNT(DISTINCT t.person_id)
+          FROM to_contact t
+          JOIN persons p ON p.id = t.person_id
+         WHERE t.done = 0
+           AND p.contact_type = 'Politique' AND p.in_office = 1
+        """
+    ).fetchone()[0]
+
+    signataires = db.execute(
+        "SELECT COUNT(*) FROM persons "
+        "WHERE contact_type = 'Politique' AND in_office = 1 "
+        "AND signed_declaration = 1"
+    ).fetchone()[0]
+
+    # Month by month: « nouveaux » are reached for the first time that month
+    # (how coverage grows), « actifs » are everyone reached that month (how
+    # busy the team was). Last twelve months that saw any contact.
+    par_mois = db.execute(
+        ELU_CONTACTS_CTE + """
+        , premiers AS (
+            SELECT person_id, MIN(substr(day, 1, 7)) AS mois
+              FROM elus GROUP BY person_id
+        )
+        SELECT substr(e.day, 1, 7) AS mois,
+               COUNT(DISTINCT e.person_id) AS actifs,
+               (SELECT COUNT(*) FROM premiers pr
+                 WHERE pr.mois = substr(e.day, 1, 7)) AS nouveaux
+          FROM elus e
+         GROUP BY mois
+         ORDER BY mois DESC
+         LIMIT 12
+        """,
+        (today,),
+    ).fetchall()
+    mois = [
+        {"label": f"{FRENCH_MONTHS[int(r['mois'][5:7])]} {r['mois'][:4]}",
+         "nouveaux": r["nouveaux"], "actifs": r["actifs"]}
+        for r in par_mois
+    ]
 
     par_position = db.execute(
         """
@@ -3973,6 +4059,11 @@ def kpi_view():
     return render_template(
         "kpi.html",
         total_elus=total_elus,
+        contactes=contactes,
+        pct_contactes=pct_contactes,
+        en_attente=en_attente,
+        signataires=signataires,
+        mois=mois,
         par_position=par_position,
         groupes_par_chambre=groupes_par_chambre,
     )

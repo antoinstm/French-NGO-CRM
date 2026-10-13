@@ -1505,3 +1505,12 @@ table.kpi-table td:last-child {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* The monthly table carries two counts with longer headers: both number
+   columns get the same treatment, wider. */
+table.kpi-table-2 th:nth-last-child(-n+2),
+table.kpi-table-2 td:nth-last-child(-n+2) {
+  width: 9rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}

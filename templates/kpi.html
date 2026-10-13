@@ -5,8 +5,41 @@
   <h1>Indicateurs</h1>
 </div>
 
-<p>Élu·es en poste dans la base : <strong>{{ total_elus }}</strong></p>
+<div class="table-wrap">
+  <table class="meetings kpi-table">
+    <tbody>
+      <tr><td>Élu·es en poste</td><td>{{ total_elus }}</td></tr>
+      <tr><td>Contacté·es par l'équipe (rencontre ou courriel envoyé)</td>
+          <td>{{ contactes }} ({{ pct_contactes }} %)</td></tr>
+      <tr><td>Jamais contacté·es</td><td>{{ total_elus - contactes }}</td></tr>
+      <tr><td>En attente dans « À contacter »</td><td>{{ en_attente }}</td></tr>
+      <tr><td>Signataires de la déclaration PauseIA</td><td>{{ signataires }}</td></tr>
+    </tbody>
+  </table>
+</div>
 
+<h2>Contacts mois par mois</h2>
+<p class="muted">« Premier contact » : élu·es contacté·es pour la première fois ce
+mois-là. « Total contacté·es » : tous les élu·es avec qui l'équipe a échangé ce
+mois-là, relances comprises.</p>
+{% if mois %}
+<div class="table-wrap">
+  <table class="meetings kpi-table kpi-table-2">
+    <thead>
+        <tr><th>Mois</th><th>Premier contact</th><th>Total contacté·es</th></tr>
+    </thead>
+    <tbody>
+      {% for m in mois %}
+      <tr><td>{{ m.label | capitalize }}</td><td>{{ m.nouveaux }}</td><td>{{ m.actifs }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>Aucun contact avec un·e élu·e enregistré pour l'instant.</p>
+{% endif %}
+
+<h2>Position sur PauseIA</h2>
 <div class="table-wrap">
   <table class="meetings kpi-table">
     <thead>
