@@ -3929,6 +3929,33 @@ def calendar_view():
     )
 
 
+@app.route("/kpi")
+@login_required
+def kpi_view():
+    db = get_db()
+
+    total_elus = db.execute(
+        "SELECT COUNT(*) FROM persons "
+        "WHERE contact_type = 'Politique' AND in_office = 1"
+    ).fetchone()[0]
+
+    par_position = db.execute(
+        """
+        SELECT stance, COUNT(*) AS n
+        FROM persons
+        WHERE contact_type = 'Politique' AND in_office = 1
+        GROUP BY stance
+        ORDER BY n DESC
+        """
+    ).fetchall()
+
+    return render_template(
+        "kpi.html",
+        total_elus=total_elus,
+        par_position=par_position,
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Interventions & contenus lists (shared by their own pages and by the
 # person / organisation detail pages)
