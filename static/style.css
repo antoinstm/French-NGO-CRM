@@ -883,6 +883,7 @@ a.cal-ev:hover {
    which would otherwise win on specificity and paint the link grey. */
 .site-header nav a.nav-record,
 .site-header nav a.nav-calendar,
+.site-header nav a.nav-kpi,
 .site-header nav a.nav-todo,
 .site-header nav a.nav-repartition {
   border-radius: 6px;
@@ -920,6 +921,21 @@ a.cal-ev:hover {
   border-color: var(--press-line);
 }
 .site-header nav a.nav-calendar:hover { background: #c3e9ff; color: var(--press-ink); }
+
+/* Indicateurs: teal, a hue the bar doesn't use yet — between the Calendrier's
+   blue and Répartition's green, distinct from both. Violet is taken (Relance,
+   Rencontre). Same token pattern as --todo. */
+:root {
+  --kpi:      #ccfbf1;
+  --kpi-ink:  #0f766e;
+  --kpi-line: #7dd3c0;
+}
+.site-header nav a.nav-kpi {
+  background: var(--kpi);
+  color: var(--kpi-ink);
+  border-color: var(--kpi-line);
+}
+.site-header nav a.nav-kpi:hover { background: #b5f5e6; color: var(--kpi-ink); }
 
 /* Black title, coloured underline: orange for Interventions, brown for
    Contenus, violet for Rencontres, yellow for Courriels, blue for Personnes.
